@@ -1,4 +1,8 @@
-🎅 https://adventofcode.com/
+🎅🧑‍💻🎄🎅🧑‍💻🎄🎅🧑‍💻🎄🎅
+
+https://adventofcode.com/
+
+🎅🧑‍💻🎄🎅🧑‍💻🎄🎅🧑‍💻🎄🎅
 
 ## ..2021
 I did a few editions before 2022 but I always managed to start late and stop early
