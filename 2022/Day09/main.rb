@@ -1,9 +1,26 @@
 require_relative "data"
 
 instructions = DATA.map { |instruction| instruction.split(" ") }
-head_position = [0, 0]
-tail_position = [0, 0]
-visited_tail_positions = [tail_position]
+# PART 1
+# head_position = [0, 0]
+# tail_position = [0, 0]
+# visited_tail_positions = [tail_position]
+
+# PART 2
+positions = [
+  [0, 0],
+  [0, 0],
+  [0, 0],
+  [0, 0],
+  [0, 0],
+  [0, 0],
+  [0, 0],
+  [0, 0],
+  [0, 0],
+  [0, 0],
+]
+
+visited_tail_positions = [positions[9]]
 
 def get_new_head_position(head_position, direction)
   if ["R", "U"].include?(direction)
@@ -43,6 +60,10 @@ def straight_move?(tail_position, head_position)
   absolute_positions(tail_position, head_position) == [0, 2]
 end
 
+def big_diagonal_move?(tail_position, head_position)
+  absolute_positions(tail_position, head_position) == [2, 2]
+end
+
 def compute_tail_based_on_head(tail_position, head_position)
   x_tail_position = tail_position[0]
   y_tail_position = tail_position[1]
@@ -57,6 +78,9 @@ def compute_tail_based_on_head(tail_position, head_position)
     else
       tail_position[1] += (y_head_position - y_tail_position) / 2
     end
+  elsif big_diagonal_move?(tail_position, head_position)
+    tail_position[0] += (x_head_position - x_tail_position) / 2
+    tail_position[1] += (y_head_position - y_tail_position) / 2
   else
     if (x_tail_position - x_head_position).abs == 2
       tail_position[0] += (x_head_position - x_tail_position) / 2
@@ -70,11 +94,29 @@ def compute_tail_based_on_head(tail_position, head_position)
   tail_position
 end
 
+# PART 1
+# instructions.each do |direction, moves|
+#   moves.to_i.times do
+#     head_position = get_new_head_position(head_position, direction)
+#     tail_position = compute_tail_based_on_head(tail_position, head_position)
+#     visited_tail_positions << tail_position.dup
+#   end
+# end
+
+# PART 2
 instructions.each do |direction, moves|
   moves.to_i.times do
-    head_position = get_new_head_position(head_position, direction)
-    tail_position = compute_tail_based_on_head(tail_position, head_position)
-    visited_tail_positions << tail_position.dup
+    positions.each_with_index do |position, index|
+      if index == 0
+        position = get_new_head_position(position, direction)
+      else
+        position = compute_tail_based_on_head(position, positions[index - 1])
+      end
+
+      visited_tail_positions << position.dup if index == 9
+    end
+
+    p positions
   end
 end
 
