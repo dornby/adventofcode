@@ -2,7 +2,11 @@ require_relative "data"
 
 cycles = []
 register = 1
-signal_strengths = []
+
+def draw(register, index)
+  sprite = [register - 1, register, register + 1]
+  sprite.include?(index) ? "#" : "."
+end
 
 DATA.each do |instruction|
   if instruction == "noop"
@@ -13,16 +17,15 @@ DATA.each do |instruction|
   end
 end
 
-cycles.each_with_index do |cycle, i|
-  index = i + 1
-  signal_strengths << register.dup * index
-  register += cycle
+rows = cycles.each_slice(40).map do |cycles_slice|
+  cycles_slice.map.with_index do |cycle, index|
+    drawing = draw(register, index)
+    register += cycle
+    drawing
+  end
 end
 
-result_indexes = [20, 60, 100, 140, 180, 220]
+joined_rows = rows.map(&:join)
+image = joined_rows.join("\n")
 
-result_signal_strenghts = result_indexes.map do |result_index|
-  signal_strengths[result_index - 1]
-end
-
-p result_signal_strenghts.sum
+puts image
