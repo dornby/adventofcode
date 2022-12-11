@@ -1,33 +1,33 @@
 require_relative "data"
 
-monkeys = DATA
+def get_modulo_from(test)
+  test.split("divisible by ")[1].to_i
+end
 
-def inspect_item(item, operation)
+monkeys = DATA
+modulos_product = monkeys.map { |_m, ms| get_modulo_from(ms[:test]) }.inject(:*)
+
+def inspect_item(item, operation, modulos_product)
+  item = item % modulos_product
   old = item
   eval(operation.split("new = ")[1])
 end
 
-def relax_item(item)
-  (item / 3.0).floor
-end
-
 def test_item(item, test)
-  item % test.split("divisible by ")[1].to_i == 0
+  item % get_modulo_from(test) == 0
 end
 
-20.times do
+10000.times do
   monkeys.each do |_monkey, monkey_stuff|
 
     monkey_stuff[:starting_items].each do |item|
-      new_item = inspect_item(item, monkey_stuff[:operation])
+      new_item = inspect_item(item, monkey_stuff[:operation], modulos_product)
 
       if monkey_stuff[:inspected_items_count].nil?
         monkey_stuff[:inspected_items_count] = 1
       else
         monkey_stuff[:inspected_items_count] += 1
       end
-
-      new_item = relax_item(new_item)
 
       test_result = test_item(new_item, monkey_stuff[:test])
 
