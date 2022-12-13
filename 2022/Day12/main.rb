@@ -16,10 +16,6 @@ grid = DATA.map { |line| line.chars }
 
 alphabet = ("a".."z").to_a
 
-starting_line = grid.index { |line| line.include?("S") }
-starting_column = grid[starting_line].index { |column| column == "S" }
-starting_position = "#{starting_line}.#{starting_column}"
-
 ending_line = grid.index { |line| line.include?("E") }
 ending_column = grid[ending_line].index { |column| column == "E" }
 ending_position = "#{ending_line}.#{ending_column}"
@@ -61,40 +57,49 @@ existing_positions.each do |position|
   positions[position] = possible_next_positions.select { |pnp| possible_letters.include?(target_letter_for_position(pnp.split(".")[0].to_i, pnp.split(".")[1].to_i, grid)) }
 end
 
-queue = []
-visited = []
-queue += [starting_position]
-previous_positions = {}
+starting_positions = existing_positions.select { |ep| target_letter_for_position(ep.split(".")[0].to_i, ep.split(".")[1].to_i, grid) == "a" }
+rounds = []
 
-positions.keys.each do |position|
-  previous_positions[position] = nil
-end
+starting_positions.each do |starting_position|
+  queue = []
+  visited = []
+  queue += [starting_position]
 
-while !queue.empty?
-  node_to_visit = queue.first
+  previous_positions = {}
 
-  not_visited_neighbours = (positions[node_to_visit] - visited)
-
-  not_visited_neighbours.each do |not_visited_neighbour|
-    previous_positions[not_visited_neighbour] = node_to_visit
+  positions.keys.each do |position|
+    previous_positions[position] = nil
   end
 
-  queue.delete(node_to_visit)
-  visited.push(node_to_visit)
+  while !queue.empty?
+    node_to_visit = queue.first
 
-  queue += not_visited_neighbours
+    not_visited_neighbours = (positions[node_to_visit] - visited)
 
-  break if visited.include?(ending_position)
+    not_visited_neighbours.each do |not_visited_neighbour|
+      previous_positions[not_visited_neighbour] = node_to_visit
+    end
+
+    queue.delete(node_to_visit)
+    visited.push(node_to_visit)
+
+    queue += not_visited_neighbours
+
+    break if visited.include?(ending_position)
+  end
+
+  round = 0
+
+  previous_pos = previous_positions[ending_position]
+  next if previous_pos.nil?
+
+  while !previous_pos.nil?
+    round += 1
+    previous_pos = previous_positions[previous_pos]
+  end
+
+  rounds.push(round)
 end
 
-round = 0
-
-previous_pos = previous_positions[ending_position]
-
-while !previous_pos.nil?
-  round += 1
-  previous_pos = previous_positions[previous_pos]
-end
-
-p round
+p rounds.min
 
