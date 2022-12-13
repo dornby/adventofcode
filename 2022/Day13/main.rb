@@ -1,15 +1,7 @@
 require_relative "data"
 require "json"
 
-pairs = [[]]
-
-DATA.each do |line|
-  if line == ""
-    pairs.push([])
-  else
-    pairs.last.push(JSON.parse(line))
-  end
-end
+packets = DATA.reject { |line| line == "" }.map { |line| JSON.parse(line) }
 
 def comparison_output(parent_one, parent_two, child_one, child_two, index)
   return true if child_one.nil?
@@ -24,9 +16,9 @@ def comparison_output(parent_one, parent_two, child_one, child_two, index)
       return child_one < child_two
     end
   elsif child_one.is_a?(Array) && child_two.is_a?(Integer)
-    comparison_output(parent_one, parent_two, child_one, [child_two], 0)
+    comparison_output(parent_one, parent_two, child_one, [child_two], index)
   elsif child_one.is_a?(Integer) && child_two.is_a?(Array)
-    comparison_output(parent_one, parent_two, [child_one], child_two, 0)
+    comparison_output(parent_one, parent_two, [child_one], child_two, index)
   elsif child_one == child_two
     comparison_output(parent_one, parent_two, parent_one[index + 1], parent_two[index + 1], index + 1)
   else
@@ -34,11 +26,27 @@ def comparison_output(parent_one, parent_two, child_one, child_two, index)
   end
 end
 
-good_indices = pairs.map.with_index do |pair, pair_index|
-  packet_one = pair.first
-  packet_two = pair.last
+packets_to_pick = packets.dup
 
-  comparison_output(packet_one, packet_two, packet_one.first, packet_two.first, 0) ? pair_index + 1 : nil
-end.compact
+packets_to_pick.each_with_index do |packet_to_pick, i|
+  packets.delete(packet_to_pick)
 
-p good_indices.sum
+  index_for_insertion = nil
+
+  packets.each_with_index do |packet, index|
+    if comparison_output(packet_to_pick, packet, packet_to_pick.first, packet.first, 0)
+      index_for_insertion = index
+      break
+    else
+      next
+    end
+  end
+
+  if index_for_insertion
+    packets.insert(index_for_insertion, packet_to_pick)
+  else
+    packets.push(packet_to_pick)
+  end
+end
+
+p (packets.index([[2]]) + 1) * (packets.index([[6]]) + 1)
