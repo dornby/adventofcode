@@ -52,9 +52,7 @@ starting_position_x = starting_position.split(".")[0].to_i
 starting_position_y = starting_position.split(".")[1].to_i
 starting_position = [starting_position_x, starting_position_y]
 
-void = false
-
-def get_next_position_from(sand_position, elements, max_y)
+def get_next_position_from(sand_position, elements)
   bottom_position = [sand_position[0], sand_position[1] + 1]
   if ["#", "o"].include?(elements[bottom_position.join(".")])
     bottom_left_position = [sand_position[0] - 1, sand_position[1] + 1]
@@ -63,26 +61,24 @@ def get_next_position_from(sand_position, elements, max_y)
       if ["#", "o"].include?(elements[bottom_right_position.join(".")])
         return sand_position
       else
-        get_next_position_from(bottom_right_position, elements, max_y)
+        get_next_position_from(bottom_right_position, elements)
       end
     else
-      get_next_position_from(bottom_left_position, elements, max_y)
+      get_next_position_from(bottom_left_position, elements)
     end
-  elsif bottom_position[1] > max_y
-    return "void"
   else
-    get_next_position_from(bottom_position, elements, max_y)
+    get_next_position_from(bottom_position, elements)
   end
 end
 
-while !void
-  final_position = get_next_position_from(starting_position, elements, max_y)
+((min_x - 1000)..(max_x + 2000)).to_a.each do |x|
+  elements["#{x}.#{max_y + 1}"] = "."
+  elements["#{x}.#{max_y + 2}"] = "#"
+end
 
-  if final_position == "void"
-    void = true
-  else
-    elements[final_position.join(".")] = "o"
-  end
+while elements[starting_position.join(".")] == "+"
+  final_position = get_next_position_from(starting_position, elements)
+  elements[final_position.join(".")] = "o"
 end
 
 p elements.values.select { |v| v == "o" }.count
