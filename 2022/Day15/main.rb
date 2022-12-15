@@ -16,13 +16,6 @@ DATA.each do |info_line|
   beacon_positions.push(get_position_from_info(beacon_info))
 end
 
-device_positions = sensor_positions + beacon_positions
-
-min_x = device_positions.map(&:first).min
-max_x = device_positions.map(&:first).max
-min_y = device_positions.map(&:last).min
-max_y = device_positions.map(&:last).max
-
 def get_manhattan_distance_from_pair(pair)
   pair_xs = pair.map(&:first)
   pair_ys = pair.map(&:last)
@@ -33,21 +26,40 @@ def get_manhattan_distance_from_pair(pair)
   x_distance + y_distance
 end
 
-check_y = 2000000
-xs_without_possible_beacon = []
+sensor_beacon_pairs = sensor_positions.zip(beacon_positions)
 
-sensor_positions.zip(beacon_positions).each do |sensor_beacon_pair|
-  manhattan = get_manhattan_distance_from_pair(sensor_beacon_pair)
-  sensor_position = sensor_beacon_pair[0]
-  sensor_x = sensor_position[0]
-  sensor_y = sensor_position[1]
-  distance_sensor_check_y = (sensor_y - check_y).abs
-  left_manhattan_distance_for_x = manhattan - distance_sensor_check_y
-  block_xs = ((sensor_x - left_manhattan_distance_for_x)..(sensor_x + left_manhattan_distance_for_x)).to_a
-  xs_without_possible_beacon += block_xs
-  xs_without_possible_beacon = xs_without_possible_beacon.uniq
+highest_index = 4000000
+
+winner = nil
+
+sensor_beacon_pairs.each do |sensor_beacon_pair|
+  sensor = sensor_beacon_pair.first
+  sensor_x = sensor[0]
+  sensor_y = sensor[1]
+
+  outbound_manhattan = get_manhattan_distance_from_pair(sensor_beacon_pair) + 1
+  reachable_ys = ([0, (sensor_y - outbound_manhattan)].max..[highest_index, (sensor_y + outbound_manhattan)].min).to_a
+
+  reachable_ys.each do |reachable_y|
+    left_manhattan_for_x = outbound_manhattan - (sensor_y - reachable_y).abs
+    min_x = [0, sensor_x - left_manhattan_for_x].max
+    max_x = [highest_index, sensor_x + left_manhattan_for_x].min
+
+    [min_x, max_x].each do |testable_x|
+      next unless testable_x >= 0 && testable_x <= highest_index
+      testable_x_reached = sensor_beacon_pairs.any? do |sensor_beacon_pair_to_compare|
+        testable_x_man = get_manhattan_distance_from_pair([sensor_beacon_pair_to_compare[0], [testable_x, reachable_y]])
+        testable_x_man <= get_manhattan_distance_from_pair(sensor_beacon_pair_to_compare)
+      end
+
+      if !testable_x_reached
+        winner = "#{testable_x}.#{reachable_y}"
+        winner_pos = winner.split(".")
+        p (winner_pos[0].to_i * highest_index) + winner_pos[1].to_i
+        break
+      end
+    end
+
+    break unless winner.nil?
+  end
 end
-
-xs_without_possible_beacon -= beacon_positions.select { |bp| bp.last == check_y }.map(&:first)
-
-p xs_without_possible_beacon.uniq.count
